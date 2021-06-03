@@ -24,8 +24,17 @@ export default async (req, res) => {
       .then((text) => {
         const dom = new JSDOM(text);
         const meta = dom.window.document.querySelectorAll(`head > meta`);
+
         return Array.from(meta)
-          .filter((el) => el.hasAttribute('property'))
+          .filter((el) => {
+            const isProperty = el.hasAttribute('property');
+            const property = el.getAttribute('property');
+            return (
+              isProperty &&
+              !property.includes('twitter') &&
+              !property.includes('fb')
+            );
+          })
           .reduce((pre, ogp) => {
             const property = ogp
               .getAttribute('property')
@@ -36,7 +45,7 @@ export default async (req, res) => {
             return { ...pre, [property]: content };
           }, {});
       });
-
+    console.log(result);
     res.setHeader('Cache-Control', 'max-age=0, s-maxage=86400');
 
     return res.status(200).json(result);
